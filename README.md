@@ -37,7 +37,7 @@
 
 ## Panduan Penggunaan
 1. *Akses Situs Web:* Buka tautan situs web aktif melalui peramban (browser) Anda di:  
-   https://[username-github].github.io/[nama-repositori]/ (Ganti dengan link web aktif Anda)
+   https://rickyploso95-gif.github.io/sakuapp/
 2. *Langkah Penggunaan Aplikasi:*
    * *Pencatatan Transaksi:* Masukkan transaksi baru (Pemasukan / Pengeluaran), pilih kategori, isi nominal serta tanggal, lalu klik Simpan Transaksi.
    * *Target Tabungan:* Buka tab Catatan Tabungan, klik Buat Target Baru, lalu isi nama target dan nominal impian.
