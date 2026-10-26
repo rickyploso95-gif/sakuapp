@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SakuApp — Kelola Keuangan & Tabungan Impianmu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --color-primary: #0f172a;
+            --color-accent: #3b82f6;
+            --color-accent-light: #60a5fa;
+            --color-surface: #ffffff;
+            --color-surface-alt: #f8fafc;
+            --color-text: #0f172a;
+            --color-text-muted: #64748b;
+            --color-border: #e2e8f0;
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-danger: #ef4444;
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-family);
+            color: var(--color-text);
+            background: var(--color-surface);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+        }
+
+        /* ============================================
+           PAGE TRANSITION OVERLAY
+        ============================================ */
+        .page-transition {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: var(--color-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .page-transition.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .page-transition .loader {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(255,255,255,0.15);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ============================================
+           NAVIGATION
+        ============================================ */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 0 24px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav.scrolled {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: #fff;
+            transition: color 0.4s;
+        }
+
+        .nav.scrolled .nav-logo { color: var(--color-text); }
+
+        .nav-logo-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--color-accent), #6366f1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .nav-logo-text {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 4px;
+            border-radius: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.4s;
+        }
+
+        .nav.scrolled .nav-links {
+            background: var(--color-surface-alt);
+            border-color: var(--color-border);
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 100px;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.25s;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+
+        .nav.scrolled .nav-links a {
+            color: var(--color-text-muted);
+        }
+
+        .nav.scrolled .nav-links a:hover {
+            background: #fff;
+            color: var(--color-text);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .nav-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 100px;
+            background: #fff;
+            color: var(--color-text);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav.scrolled .nav-cta {
+            background: var(--color-primary);
+            color: #fff;
+        }
+
+        .nav-mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .nav.scrolled .nav-mobile-toggle { color: var(--color-text); }
+
+        /* ============================================
+           HERO SECTION
+        ============================================ */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: var(--color-primary);
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+        }
+
+        .hero-bg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.5;
+        }
+
+        .hero-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(15,23,42,0.3) 0%, rgba(15,23,42,0.6) 50%, rgba(15,23,42,0.9) 100%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 820px;
+            text-align: center;
+            padding: 120px 24px 80px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px 6px 8px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 32px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.8s 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .hero-badge-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--color-success);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        .hero-title {
+            font-size: clamp(36px, 6vw, 72px);
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -2px;
+            color: #fff;
+            margin-bottom: 24px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeUp 0.8s 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .hero-title .accent {
+            background: linear-gradient(135deg, var(--color-accent-light), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-title .highlight {
+            color: var(--color-warning);
+            -webkit-text-fill-color: var(--color-warning);
+        }
+
+        .hero-desc {
+            font-size: 16px;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.65);
+            max-width: 540px;
+            margin: 0 auto 40px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeUp 0.8s 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .hero-form {
+            display: flex;
+            align-items: center;
+            max-width: 460px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 100px;
+            padding: 5px 5px 5px 24px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeUp 0.8s 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .hero-form input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 14px;
+            color: #fff;
+            font-family: var(--font-family);
+            padding: 12px 0;
+        }
+
+        .hero-form input::placeholder { color: rgba(255, 255, 255, 0.4); }
+
+        .hero-form button {
+            flex-shrink: 0;
+            padding: 12px 28px;
+            border-radius: 100px;
+            border: none;
+            background: #fff;
+            color: var(--color-primary);
+            font-size: 13px;
+            font-weight: 700;
+            font-family: var(--font-family);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hero-form button:hover {
+            background: var(--color-accent-light);
+            color: #fff;
+            transform: scale(1.03);
+        }
+
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================
+           SCROLL-REVEAL ANIMATION
+        ============================================ */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ============================================
+           SECTION: ROUTES / FEATURES
+        ============================================ */
+        .section { padding: 100px 24px; }
+
+        .section-label {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--color-text-muted);
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: clamp(28px, 4vw, 44px);
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1.15;
+            color: var(--color-text);
+            margin-bottom: 16px;
+        }
+
+        .section-desc {
+            font-size: 15px;
+            line-height: 1.7;
+            color: var(--color-text-muted);
+            max-width: 420px;
+        }
+
+        /* Routes Section */
+        .routes {
+            background: var(--color-surface-alt);
+        }
+
+        .routes-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .routes-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: end;
+            margin-bottom: 48px;
+        }
+
+        .feature-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .feature-card {
+            position: relative;
+            border-radius: 24px;
+            overflow: hidden;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: default;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border-color: transparent;
+        }
+
+        .feature-card-img {
+            position: relative;
+            height: 240px;
+            overflow: hidden;
+        }
+
+        .feature-card-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .feature-card:hover .feature-card-img img {
+            transform: scale(1.05);
+        }
+
+        .feature-card-tag {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            padding: 5px 12px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #fff;
+        }
+
+        .feature-card-body {
+            padding: 24px;
+        }
+
+        .feature-card-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .feature-card-title h3 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .feature-card-arrow {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1.5px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-text-muted);
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover .feature-card-arrow {
+            background: var(--color-accent);
+            border-color: var(--color-accent);
+            color: #fff;
+        }
+
+        .feature-card-desc {
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--color-text-muted);
+        }
+
+        /* ============================================
+           SECTION: HOW IT WORKS
+        ============================================ */
+        .how-it-works {
+            background: var(--color-surface);
+        }
+
+        .how-inner {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .how-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: start;
+        }
+
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 48px;
+            padding-top: 12px;
+        }
+
+        .step {
+            display: flex;
+            gap: 20px;
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1;
+            color: var(--color-accent);
+            opacity: 0.35;
+            min-width: 44px;
+        }
+
+        .step-content h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--color-text);
+        }
+
+        .step-content p {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--color-text-muted);
+        }
+
+        /* ============================================
+           SECTION: FAQ
+        ============================================ */
+        .faq { background: var(--color-surface-alt); }
+
+        .faq-inner {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .faq-question {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 0;
+            background: none;
+            border: none;
+            font-family: var(--font-family);
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--color-text);
+            cursor: pointer;
+            text-align: left;
+            transition: color 0.3s;
+        }
+
+        .faq-question:hover { color: var(--color-accent); }
+
+        .faq-question .icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: var(--color-text-muted);
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            transition: all 0.3s;
+            flex-shrink: 0;
+            margin-left: 16px;
+        }
+
+        .faq-item.active .faq-question .icon {
+            background: var(--color-success);
+            border-color: var(--color-success);
+            color: #fff;
+            transform: rotate(45deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s;
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 300px;
+        }
+
+        .faq-answer p {
+            padding: 0 0 24px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--color-text-muted);
+        }
+
+        /* ============================================
+           CTA SECTION
+        ============================================ */
+        .cta-section {
+            position: relative;
+            padding: 100px 24px;
+            overflow: hidden;
+            background: var(--color-primary);
+        }
+
+        .cta-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+        }
+
+        .cta-bg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.35;
+        }
+
+        .cta-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(15,23,42,0.5) 0%, rgba(15,23,42,0.8) 100%);
+        }
+
+        .cta-content {
+            position: relative;
+            z-index: 2;
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .cta-title {
+            font-size: clamp(28px, 4vw, 44px);
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1.15;
+            color: #fff;
+            margin-bottom: 16px;
+        }
+
+        .cta-desc {
+            font-size: 14px;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 36px;
+        }
+
+        .cta-form {
+            display: flex;
+            align-items: center;
+            max-width: 440px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 100px;
+            padding: 5px 5px 5px 24px;
+        }
+
+        .cta-form input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 14px;
+            color: #fff;
+            font-family: var(--font-family);
+            padding: 12px 0;
+        }
+
+        .cta-form input::placeholder { color: rgba(255, 255, 255, 0.4); }
+
+        .cta-form button {
+            flex-shrink: 0;
+            padding: 12px 28px;
+            border-radius: 100px;
+            border: none;
+            background: #fff;
+            color: var(--color-primary);
+            font-size: 13px;
+            font-weight: 700;
+            font-family: var(--font-family);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .cta-form button:hover {
+            background: var(--color-accent-light);
+            color: #fff;
+            transform: scale(1.03);
+        }
+
+        /* ============================================
+           FOOTER
+        ============================================ */
+        .footer {
+            background: var(--color-surface);
+            border-top: 1px solid var(--color-border);
+            padding: 60px 24px 40px;
+        }
+
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 48px;
+        }
+
+        .footer-brand .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .footer-brand .logo-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--color-accent), #6366f1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .footer-brand .logo-text {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .footer-brand p {
+            font-size: 13px;
+            line-height: 1.7;
+            color: var(--color-text-muted);
+            max-width: 280px;
+        }
+
+        .footer-column h4 {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--color-text);
+            margin-bottom: 20px;
+        }
+
+        .footer-column ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer-column a {
+            text-decoration: none;
+            font-size: 13px;
+            color: var(--color-text-muted);
+            transition: color 0.25s;
+        }
+
+        .footer-column a:hover { color: var(--color-text); }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 40px auto 0;
+            padding-top: 24px;
+            border-top: 1px solid var(--color-border);
+            text-align: center;
+            font-size: 12px;
+            color: var(--color-text-muted);
+        }
+
+        /* ============================================
+           MOBILE MENU
+        ============================================ */
+        .mobile-menu {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .mobile-menu.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .mobile-menu-panel {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 280px;
+            height: 100%;
+            background: var(--color-surface);
+            padding: 24px;
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .mobile-menu.open .mobile-menu-panel {
+            transform: translateX(0);
+        }
+
+        .mobile-menu-close {
+            align-self: flex-end;
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            padding: 8px;
+            margin-bottom: 16px;
+        }
+
+        .mobile-menu-panel a {
+            display: block;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 14px 16px;
+            border-radius: 12px;
+            color: var(--color-text);
+            transition: background 0.25s;
+        }
+
+        .mobile-menu-panel a:hover {
+            background: var(--color-surface-alt);
+        }
+
+        .mobile-menu-panel .mobile-cta {
+            margin-top: auto;
+            display: block;
+            text-align: center;
+            padding: 14px 24px;
+            border-radius: 14px;
+            background: var(--color-primary);
+            color: #fff;
+            font-weight: 700;
+            font-size: 14px;
+            text-decoration: none;
+            transition: opacity 0.25s;
+        }
+
+        .mobile-menu-panel .mobile-cta:hover { opacity: 0.9; background: var(--color-primary); }
+
+        /* ============================================
+           RESPONSIVE
+        ============================================ */
+        @media (max-width: 1024px) {
+            .routes-header { grid-template-columns: 1fr; gap: 16px; }
+            .how-grid { grid-template-columns: 1fr; gap: 48px; }
+            .footer-inner { grid-template-columns: 1fr 1fr; gap: 32px; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .nav-cta { display: none; }
+            .nav-mobile-toggle { display: block; }
+
+            .feature-cards { grid-template-columns: 1fr; }
+
+            .hero-form {
+                flex-direction: column;
+                border-radius: 20px;
+                padding: 16px;
+                gap: 12px;
+            }
+
+            .hero-form input {
+                width: 100%;
+                text-align: center;
+                padding: 8px 0;
+            }
+
+            .hero-form button {
+                width: 100%;
+                padding: 14px 28px;
+            }
+
+            .cta-form {
+                flex-direction: column;
+                border-radius: 20px;
+                padding: 16px;
+                gap: 12px;
+            }
+
+            .cta-form input {
+                width: 100%;
+                text-align: center;
+                padding: 8px 0;
+            }
+
+            .cta-form button {
+                width: 100%;
+                padding: 14px 28px;
+            }
+
+            .footer-inner { grid-template-columns: 1fr; gap: 32px; }
+            .section { padding: 72px 20px; }
+        }
+
+        @media (max-width: 480px) {
+            .section-title { font-size: 28px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Page Transition Overlay -->
+    <div class="page-transition" id="pageTransition">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Navigation -->
+    <header class="nav" id="mainNav">
+        <div class="nav-inner">
+            <a href="#" class="nav-logo">
+                <div class="nav-logo-icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <span class="nav-logo-text">SakuApp</span>
+            </a>
+
+            <nav class="nav-links">
+                <a href="#fitur">Fitur</a>
+                <a href="#cara-kerja">Cara Kerja</a>
+                <a href="#faq">FAQ</a>
+            </nav>
+
+            <a href="base.html" class="nav-cta" id="navCta">
+                Buka Aplikasi <i class="fas fa-arrow-right" style="font-size:11px"></i>
+            </a>
+
+            <button class="nav-mobile-toggle" id="mobileToggle" aria-label="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-panel">
+            <button class="mobile-menu-close" id="mobileClose">
+                <i class="fas fa-times"></i>
+            </button>
+            <a href="#fitur" class="mobile-link">Fitur</a>
+            <a href="#cara-kerja" class="mobile-link">Cara Kerja</a>
+            <a href="#faq" class="mobile-link">FAQ</a>
+            <a href="base.html" class="mobile-cta mobile-link-app">Buka Aplikasi →</a>
+        </div>
+    </div>
+
+    <!-- ============================================
+         HERO SECTION
+    ============================================ -->
+    <section class="hero">
+        <div class="hero-bg">
+            <img src="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&w=1920&q=80" alt="Financial planning" loading="eager">
+        </div>
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="hero-badge-dot"></span>
+                Pengelola Keuangan Pribadi
+            </div>
+            <h1 class="hero-title">
+                Satu Aplikasi,<br>
+                <span class="accent">Semua</span> Keuangan<br>
+                Dalam <span class="highlight">Genggaman</span>
+            </h1>
+            <p class="hero-desc">
+                Lupakan spreadsheet rumit dan catatan manual. SakuApp membantu Anda mencatat arus kas, menetapkan target tabungan, dan menganalisis pengeluaran — semua aman di perangkat Anda.
+            </p>
+            <div class="hero-form">
+                <input type="email" placeholder="Masukkan email Anda" id="heroEmail" autocomplete="email">
+                <button type="button" id="heroCtaBtn">Mulai Sekarang</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         FEATURES / ROUTES SECTION
+    ============================================ -->
+    <section class="section routes" id="fitur">
+        <div class="routes-inner">
+            <div class="routes-header reveal">
+                <div>
+                    <span class="section-label">Fitur</span>
+                    <h2 class="section-title">Fitur yang bikin atur uang jadi mudah</h2>
+                </div>
+                <p class="section-desc">
+                    Empat fitur utama yang membantu Anda mengelola keuangan harian dengan cerdas — semua terintegrasi dalam satu antarmuka.
+                </p>
+            </div>
+
+            <div class="feature-cards">
+                <div class="feature-card reveal">
+                    <div class="feature-card-img">
+                        <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80" alt="Dashboard Interaktif" loading="lazy">
+                        <span class="feature-card-tag">Dashboard</span>
+                    </div>
+                    <div class="feature-card-body">
+                        <div class="feature-card-title">
+                            <h3>Dashboard Interaktif</h3>
+                            <div class="feature-card-arrow"><i class="fas fa-arrow-right"></i></div>
+                        </div>
+                        <p class="feature-card-desc">Ringkasan saldo, pemasukan, dan pengeluaran secara real-time dalam satu pandangan yang ringkas dan intuitif.</p>
+                    </div>
+                </div>
+
+                <div class="feature-card reveal">
+                    <div class="feature-card-img">
+                        <img src="https://images.unsplash.com/photo-1579621970795-87facc2f976d?auto=format&fit=crop&w=800&q=80" alt="Target Tabungan" loading="lazy">
+                        <span class="feature-card-tag">Tabungan</span>
+                    </div>
+                    <div class="feature-card-body">
+                        <div class="feature-card-title">
+                            <h3>Target Tabungan</h3>
+                            <div class="feature-card-arrow"><i class="fas fa-arrow-right"></i></div>
+                        </div>
+                        <p class="feature-card-desc">Buat target impian, atur nominal, dan lacak persentase progres tabungan Anda secara visual dan terencana.</p>
+                    </div>
+                </div>
+
+                <div class="feature-card reveal">
+                    <div class="feature-card-img">
+                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80" alt="Analisis Chart" loading="lazy">
+                        <span class="feature-card-tag">Analisis</span>
+                    </div>
+                    <div class="feature-card-body">
+                        <div class="feature-card-title">
+                            <h3>Analisis & Laporan</h3>
+                            <div class="feature-card-arrow"><i class="fas fa-arrow-right"></i></div>
+                        </div>
+                        <p class="feature-card-desc">Grafik interaktif untuk memantau porsi pengeluaran berdasarkan kategori dan perbandingan arus kas bulanan.</p>
+                    </div>
+                </div>
+
+                <div class="feature-card reveal">
+                    <div class="feature-card-img">
+                        <img src="https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?auto=format&fit=crop&w=800&q=80" alt="Export Import" loading="lazy">
+                        <span class="feature-card-tag">Backup</span>
+                    </div>
+                    <div class="feature-card-body">
+                        <div class="feature-card-title">
+                            <h3>Export & Backup</h3>
+                            <div class="feature-card-arrow"><i class="fas fa-arrow-right"></i></div>
+                        </div>
+                        <p class="feature-card-desc">Simpan cadangan data keuangan ke file JSON atau CSV, lalu pulihkan kapan pun di perangkat manapun.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         HOW IT WORKS SECTION
+    ============================================ -->
+    <section class="section how-it-works" id="cara-kerja">
+        <div class="how-inner">
+            <div class="how-grid">
+                <div class="reveal">
+                    <span class="section-label">Cara Kerja</span>
+                    <h2 class="section-title">Tiga langkah, lalu keuangan Anda rapi</h2>
+                    <p class="section-desc" style="margin-top:16px">
+                        Tanpa registrasi, tanpa antrian, tanpa ribet. Langsung buka, langsung catat. Pilih cara Anda menabung, lalu mulai pantau setiap hari.
+                    </p>
+                </div>
+
+                <div class="steps">
+                    <div class="step reveal">
+                        <span class="step-number">01</span>
+                        <div class="step-content">
+                            <h3>Catat pemasukan & pengeluaran</h3>
+                            <p>Masukkan transaksi harian Anda — bisa pemasukan gaji, belanja harian, atau tagihan bulanan. Semua tercatat otomatis secara lokal.</p>
+                        </div>
+                    </div>
+
+                    <div class="step reveal">
+                        <span class="step-number">02</span>
+                        <div class="step-content">
+                            <h3>Tetapkan target tabungan</h3>
+                            <p>Buat target impian Anda — dana darurat, laptop baru, atau liburan. Alokasikan saldo bebas menjadi tabungan terkunci dengan mudah.</p>
+                        </div>
+                    </div>
+
+                    <div class="step reveal">
+                        <span class="step-number">03</span>
+                        <div class="step-content">
+                            <h3>Pantau & analisis keuangan</h3>
+                            <p>Lihat grafik pengeluaran per kategori, bandingkan arus kas, dan evaluasi kemajuan tabungan Anda setiap saat.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         FAQ SECTION
+    ============================================ -->
+    <section class="section faq" id="faq">
+        <div class="faq-inner">
+            <div class="reveal">
+                <span class="section-label">FAQ</span>
+                <h2 class="section-title" style="margin-bottom:48px">Sebelum Anda mulai</h2>
+            </div>
+
+            <div class="faq-list">
+                <div class="faq-item reveal">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        Apakah data saya disimpan di server?
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Tidak. Semua data transaksi dan tabungan Anda tersimpan secara lokal di peramban (LocalStorage) perangkat Anda. SakuApp menjaga privasi Anda 100% aman — tidak ada data yang dikirim ke server manapun.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item reveal">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        Bagaimana cara memindahkan data ke perangkat lain?
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Gunakan fitur Export JSON di halaman aplikasi untuk mengunduh berkas cadangan, lalu Import JSON di perangkat baru Anda. Semua data transaksi dan tabungan akan terpulihkan secara utuh.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item reveal">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        Apakah aplikasi ini sepenuhnya gratis?
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Ya, SakuApp 100% gratis digunakan tanpa biaya tersembunyi, tanpa batasan jumlah transaksi, dan tanpa iklan yang mengganggu.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item reveal">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        Apakah bisa digunakan secara offline?
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Ya! Setelah halaman termuat, seluruh fungsionalitas aplikasi bekerja secara offline. Data disimpan di LocalStorage perangkat Anda sehingga tidak memerlukan koneksi internet aktif.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item reveal">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        Apakah SakuApp menyimpan informasi login?
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>SakuApp tidak memerlukan registrasi atau login. Anda bisa langsung menggunakan aplikasi tanpa membuat akun — cukup buka dan mulai mencatat.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         CTA SECTION
+    ============================================ -->
+    <section class="cta-section">
+        <div class="cta-bg">
+            <img src="https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1920&q=80" alt="Financial freedom" loading="lazy">
+        </div>
+        <div class="cta-content reveal">
+            <h2 class="cta-title">Mulai kelola keuangan Anda hari ini</h2>
+            <p class="cta-desc">Tanpa registrasi, langsung pakai. Buka SakuApp dan mulai catat setiap rupiah yang masuk dan keluar — gratis selamanya.</p>
+            <div class="cta-form">
+                <input type="email" placeholder="Masukkan email Anda" autocomplete="email">
+                <button type="button" onclick="navigateToApp()">Mulai Sekarang</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         FOOTER
+    ============================================ -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="logo">
+                    <div class="logo-icon"><i class="fas fa-wallet"></i></div>
+                    <span class="logo-text">SakuApp</span>
+                </div>
+                <p>Satu aplikasi untuk semua kebutuhan keuangan pribadi. Catat, kelola, dan raih target tabungan impian Anda.</p>
+            </div>
+
+            <div class="footer-column">
+                <h4>Produk</h4>
+                <ul>
+                    <li><a href="#fitur">Fitur</a></li>
+                    <li><a href="#cara-kerja">Cara Kerja</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h4>Perusahaan</h4>
+                <ul>
+                    <li><a href="#">Tentang</a></li>
+                    <li><a href="#">Blog</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h4>Dukungan</h4>
+                <ul>
+                    <li><a href="#faq">Pusat Bantuan</a></li>
+                    <li><a href="#">Kontak</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            © 2026 SakuApp. Hak Cipta Dilindungi.
+        </div>
+    </footer>
+
+    <!-- ============================================
+         JAVASCRIPT
+    ============================================ -->
+    <script>
+        // ============================================
+        // NAVIGATION SCROLL BEHAVIOR
+        // ============================================
+        const mainNav = document.getElementById('mainNav');
+        let lastScroll = 0;
+
+        window.addEventListener('scroll', () => {
+            const scrollY = window.scrollY;
+            if (scrollY > 60) {
+                mainNav.classList.add('scrolled');
+            } else {
+                mainNav.classList.remove('scrolled');
+            }
+            lastScroll = scrollY;
+        }, { passive: true });
+
+        // ============================================
+        // MOBILE MENU
+        // ============================================
+        const mobileMenu = document.getElementById('mobileMenu');
+        const mobileToggle = document.getElementById('mobileToggle');
+        const mobileClose = document.getElementById('mobileClose');
+
+        mobileToggle.addEventListener('click', () => mobileMenu.classList.add('open'));
+        mobileClose.addEventListener('click', () => mobileMenu.classList.remove('open'));
+
+        // Close mobile menu when clicking overlay
+        mobileMenu.addEventListener('click', (e) => {
+            if (e.target === mobileMenu) mobileMenu.classList.remove('open');
+        });
+
+        // Close mobile menu on link click
+        document.querySelectorAll('.mobile-link').forEach(link => {
+            link.addEventListener('click', () => mobileMenu.classList.remove('open'));
+        });
+
+        // ============================================
+        // SMOOTH PAGE TRANSITION
+        // ============================================
+        const pageTransition = document.getElementById('pageTransition');
+
+        function navigateToApp() {
+            pageTransition.classList.add('active');
+            setTimeout(() => {
+                window.location.href = 'base.html';
+            }, 600);
+        }
+
+        // Hero CTA
+        document.getElementById('heroCtaBtn').addEventListener('click', navigateToApp);
+
+        // Nav CTA
+        document.getElementById('navCta').addEventListener('click', (e) => {
+            e.preventDefault();
+            navigateToApp();
+        });
+
+        // Mobile CTA
+        document.querySelector('.mobile-link-app').addEventListener('click', (e) => {
+            e.preventDefault();
+            mobileMenu.classList.remove('open');
+            navigateToApp();
+        });
+
+        // ============================================
+        // FAQ ACCORDION
+        // ============================================
+        function toggleFaq(btn) {
+            const item = btn.parentElement;
+            const isActive = item.classList.contains('active');
+
+            // Close all FAQ items
+            document.querySelectorAll('.faq-item').forEach(el => el.classList.remove('active'));
+
+            // Toggle current
+            if (!isActive) {
+                item.classList.add('active');
+            }
+        }
+
+        // ============================================
+        // SCROLL REVEAL ANIMATION
+        // ============================================
+        const revealElements = document.querySelectorAll('.reveal');
+
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    // Stagger the animation
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, index * 80);
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '0px 0px -60px 0px'
+        });
+
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        // ============================================
+        // PAGE LOAD ANIMATION
+        // ============================================
+        window.addEventListener('load', () => {
+            document.body.style.opacity = '1';
+        });
+    </script>
+</body>
+</html>
